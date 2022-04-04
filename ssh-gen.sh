@@ -1,86 +1,42 @@
 #!/bin/bash
 
-# Envs
-# ---------------------------------------------------\
-PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
-SCRIPT_PATH=$(cd `dirname "${BASH_SOURCE[0]}"` && pwd)
-cd $SCRIPT_PATH
-
-# Vars
-# ---------------------------------------------------\
-ME=`basename "$0"`
-BACKUPS=$SCRIPT_PATH/backups
-SERVER_NAME=`hostname`
-SERVER_IP=$(hostname -I | cut -d' ' -f1)
-LOG=$SCRIPT_PATH/actions.log
-
-confirm() {
-    # call with a prompt string or use a default
-    read -r -p "${1:-Are you sure? [y/N]} " response
-    case "$response" in
-        [yY][eE][sS]|[yY])
-            true
-            ;;
-        *)
-            false
-            ;;
-    esac
+#Create xuser
+PFILE=/etc/passwd
+xuseraction() {
+/usr/sbin/useradd -G users,cdrom,floppy,audio,video,plugdev,users,lp -s /bin/bash -p $MD5PASS -d $XHOME $XUSER
+}
+xuseradd() {
+ echo "Создаю пользователя xuser"
+        XUSER=xuser
+        XHOME=/home/xuser
+        echo "Введите пароль для пользователя xuser:"
+        echo "В целях безопасности вводите пароль достаточной сложности: не менее 8 символов, содержащий буквы верхнего и нижнего регистра";
+        stty -echo
+        read PASSWD
+        echo "Повторите пароль для пользователя xuser:"
+        stty -echo
+        read REPASSWD
+        stty echo
 }
 
-gen_pass() {
-  local l=$1
-  [ "$l" == "" ] && l=9
-  tr -dc A-Za-z0-9 < /dev/urandom | head -c ${l} | xargs
-}
+if [ -e $PFILE ]; then
+        PLINE=$(grep -c '^xuser:' $PFILE)
+        echo $PLINE
 
-create_user() {
-    space
-    read -p "Enter user name: " user
-
-    if id -u "$user" >/dev/null 2>&1; then
-        Error "Error" "User $user exists. Try to set another user name."
-    else
-        Info "Info" "User $user will be create.."
-
-        local pass=$(gen_pass)
-
-        if confirm "Promote user to admin? (y/n or enter for n)"; then
-            useradd -m -s /bin/bash -G wheel ${user}
-            echo "%$user ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/$user
+                if [ "$PLINE" -eq 0 ]; then
+        while [ "$PLINE" -eq 0 ]
+do
+        xuseradd
+        if [ "$PASSWD" = "$REPASSWD" ]; then
+        MD5PASS=$(/usr/bin/mkpasswd -m md5 $PASSWD)
+        xuseraction
+        PLINE=$(grep -c '^xuser:' $PFILE)
         else
-            useradd -m -s /bin/bash ${user}
+        echo "================================================================="
+        echo "Пароли не совпадают"
+        echo "================================================================="
         fi
-
-        # set password
-        echo "$user:$pass" | chpasswd
-
-        Info "Info" "User created. Name: $user. Password: $pass"
-        logthis "User created. Name: $user. Password: $pass"
-
-    fi
-    space
-
-}
-
-# Menu user
-  while true
-    do
-        PS3='Please enter your choice: '
-        options=(
-        "Create new user"
-        "Quit"
-        )
-        select opt in "${options[@]}"
-        do
-         case $opt in
-            "Create new user")
-            break
-            ;;
-            "Quit")
-                 Info "Exit" "Bye"
-                 exit
-             ;;
-            *) echo invalid option;;
-         esac
-    done
-   done
+done
+else echo "Пользователь $XUSER уже зарегестрирован в вашей системе"
+                fi
+fi
