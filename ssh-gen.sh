@@ -14,6 +14,19 @@ SERVER_NAME=`hostname`
 SERVER_IP=$(hostname -I | cut -d' ' -f1)
 LOG=$SCRIPT_PATH/actions.log
 
+confirm() {
+    # call with a prompt string or use a default
+    read -r -p "${1:-Are you sure? [y/N]} " response
+    case "$response" in
+        [yY][eE][sS]|[yY])
+            true
+            ;;
+        *)
+            false
+            ;;
+    esac
+}
+
 gen_pass() {
   local l=$1
   [ "$l" == "" ] && l=9
@@ -21,7 +34,6 @@ gen_pass() {
 }
 
 create_user() {
-
     space
     read -p "Enter user name: " user
 
