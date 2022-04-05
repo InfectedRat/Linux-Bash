@@ -1,15 +1,13 @@
 #!/bin/bash
-# User manager script for Linux
-# Created by Y.G.
 
-# Envs
-# ---------------------------------------------------\
+# Разобраться с окружением
+# ---------------------------------------------------
 PATH=$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 SCRIPT_PATH=$(cd `dirname "${BASH_SOURCE[0]}"` && pwd)
 cd $SCRIPT_PATH
 
-# Vars
-# ---------------------------------------------------\
+# Разобраться с переменными
+# ---------------------------------------------------
 ME=`basename "$0"`
 BACKUPS=$SCRIPT_PATH/backups
 SERVER_NAME=`hostname`
