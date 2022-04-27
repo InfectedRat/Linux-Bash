@@ -14,7 +14,7 @@ sudo ls -la /root
 # обновление пакетов 
 sudo apt update
 
-# установк ssh server
+# установка ssh server
 sudo apt-get install openssh-server
 
 # настройка SSH сервера 
